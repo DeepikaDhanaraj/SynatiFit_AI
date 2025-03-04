@@ -21,10 +21,6 @@ def read_image(file_path):
     with open(file_path, "rb") as file:
         return file.read()
 
-load_dotenv(encoding="utf-8")
-api_key = os.getenv("COHERE_API_KEY")
-co = cohere.Client(api_key)
-
 # Load environment variables
 load_dotenv()
 EMAIL_USER = os.getenv("EMAIL_USER")
@@ -1410,6 +1406,10 @@ def food_browser():
 if selected == "Rescipes Browser":
     food_browser()
 
+load_dotenv(encoding="utf-8")
+api_key = os.getenv("COHERE_API_KEY")
+co = cohere.Client(api_key)
+#co = cohere.Client("utCiTieuQW3qWNbvafLJAj4jt1i6DvF7J5CWiEeU")
 def gather_user_preferences():
     goal = st.selectbox("What's your main fitness goal?", ["Weight Loss", "Build Muscle", "Endurance", "General Fitness"])
     experience = st.radio("What's your experience level?", ["Beginner", "Intermediate", "Advanced"])
@@ -1420,16 +1420,23 @@ def process_query(query, exercise_data, user_preferences=None):
     if user_preferences is None:
         goal, experience, restrictions = gather_user_preferences()
         return process_query(query, exercise_data, user_preferences={"goal": goal, "experience": experience, "restrictions": restrictions})
+
     prompt = "User Query: " + query
-    response = co.generate(model='command-nightly', prompt=prompt, stop_sequences=["--"])
-    return response.generations[0].text
+
+    # Use chat API instead of generate API
+    response = co.chat(
+        model="command-nightly",
+        message=prompt
+    )
+
+    return response.text
 if selected == "Chatbot":
-    st.title("Fitness Knowledge Chatbot")
-    user_preferences = gather_user_preferences()
-    user_input = st.text_input("Ask me about workouts or fitness...")
-    if st.button("Submit"):
-        chatbot_response = process_query(user_input, exercise_data, user_preferences)
-        st.write("Chatbot:", chatbot_response)
+        st.title("Fitness Knowledge Chatbot")
+        user_preferences = gather_user_preferences()
+        user_input = st.text_input("Ask me about workouts or fitness...")
+        if st.button("Submit"):
+            chatbot_response = process_query(user_input, None, user_preferences)
+            st.write("Chatbot:", chatbot_response)
 
 
 # Function to fetch user progress from SQLite database
